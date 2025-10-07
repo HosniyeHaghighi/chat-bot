@@ -45,12 +45,12 @@ export default {
     const messages = ref<Message[]>([]);
     const loading = ref(false);
 
-    // --- START OF CHANGES ---
+    // --- START OF THE CORRECT CODE ---
 
-    // 1. Define your backend URL
-    const backendUrl = 'http://89.251.9.191:8000'; // Or your server's public IP
+    // ۱. آدرس بک‌اند خود را اینجا تعریف کنید
+    const backendUrl = 'http://89.251.9.191:8000'; // یا IP عمومی سرور شما
 
-    // 2. Create the session ID management function
+    // ۲. تابع مدیریت session_id
     function getSessionId() {
       let sessionId = localStorage.getItem('chatSessionId');
       if (!sessionId) {
@@ -60,22 +60,24 @@ export default {
       return sessionId;
     }
 
-    // 3. Update the sendMessage function
+    // ۳. تابع sendMessage با منطق ارسال درخواست واقعی
     const sendMessage = async () => {
       if (userInput.value.trim()) {
         const userMessageText = userInput.value;
         
-        // Add user's message to the UI immediately
+        // پیام کاربر را بلافاصله در UI نمایش بده
         messages.value.push({
-          id: Date.now(),
+          id: 'msg-' + Date.now(),
           text: userMessageText,
           type: 'sender'
         });
         
+        const currentInput = userInput.value;
         userInput.value = '';
-        loading.value = true; // Show loading indicator
+        loading.value = true; // نمایشگر لودینگ را فعال کن
 
         try {
+          // ارسال درخواست واقعی به بک‌اند
           const response = await fetch(`http://89.251.9.191:8000/api/v1/chat`, {
             method: 'POST',
             headers: {
@@ -93,34 +95,33 @@ export default {
 
           const data = await response.json();
           
-          // Add bot's response to the UI
+          // پاسخ ربات را در UI نمایش بده
           messages.value.push({
-            id: Date.now() + 1, // Or use an ID from the backend if available
+            id: 'res-' + Date.now(),
             text: data.response,
             type: 'receiver'
           });
 
         } catch (error) {
           console.error('Error sending message:', error);
-          // Show an error message in the chat
+          // نمایش پیام خطا در چت
           messages.value.push({
             id: 'error-' + Date.now(),
             text: 'متاسفانه در ارتباط با سرور مشکلی پیش آمد. لطفا دوباره تلاش کنید.',
             type: 'receiver'
           });
         } finally {
-          loading.value = false; // Hide loading indicator
+          loading.value = false; // نمایشگر لودینگ را غیرفعال کن
         }
       }
     };
-
-    // We no longer need fetchMessages on mount, 
-    // but you can keep it if you want to load an initial welcome message from an API.
+    
+    // دیگر نیازی به onMounted برای بارگذاری پیام‌های تستی نیست
     onMounted(() => {
-      // fetchMessages(); // This can be removed or repurposed
+      // fetchMessages(); // این خط باید حذف یا کامنت شود
     });
     
-    // --- END OF CHANGES ---
+    // --- END OF THE CORRECT CODE ---
 
     return {
       userInput,
