@@ -25,12 +25,12 @@
 </template>
 
 <script lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import MessageBox from './components/MessageBox.vue';
 import ChatInput from './components/ChatInput.vue';
 
 interface Message {
-  id: number | string;
+  id: number | string; // برای سازگاری با شناسه‌های رشته‌ای اصلاح شد
   text: string;
   type: 'sender' | 'receiver';
 }
@@ -45,12 +45,8 @@ export default {
     const messages = ref<Message[]>([]);
     const loading = ref(false);
 
-    // --- START OF THE CORRECT CODE ---
+    const backendUrl = 'http://89.251.9.191:8000'; // آدرس بک‌اند
 
-    // ۱. آدرس بک‌اند خود را اینجا تعریف کنید
-    const backendUrl = 'http://89.251.9.191:8000'; // یا IP عمومی سرور شما
-
-    // ۲. تابع مدیریت session_id
     function getSessionId() {
       let sessionId = localStorage.getItem('chatSessionId');
       if (!sessionId) {
@@ -60,24 +56,25 @@ export default {
       return sessionId;
     }
 
-    // ۳. تابع sendMessage با منطق ارسال درخواست واقعی
     const sendMessage = async () => {
+      // --- خط دیباگ ---
+      console.log('sendMessage function was called!'); // این پیام باید در کنسول مرورگر نمایش داده شود
+
       if (userInput.value.trim()) {
         const userMessageText = userInput.value;
         
-        // پیام کاربر را بلافاصله در UI نمایش بده
         messages.value.push({
           id: 'msg-' + Date.now(),
           text: userMessageText,
           type: 'sender'
         });
         
-        const currentInput = userInput.value;
         userInput.value = '';
-        loading.value = true; // نمایشگر لودینگ را فعال کن
+        loading.value = true;
 
         try {
-          // ارسال درخواست واقعی به بک‌اند
+          // --- ارسال درخواست واقعی ---
+          console.log('Sending fetch request to backend...'); // لاگ قبل از ارسال
           const response = await fetch(`http://89.251.9.191:8000/api/v1/chat`, {
             method: 'POST',
             headers: {
@@ -88,14 +85,14 @@ export default {
               session_id: getSessionId()
             })
           });
+          console.log('Fetch request sent.'); // لاگ بعد از ارسال
 
           if (!response.ok) {
-            throw new Error(`error!`);
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
 
           const data = await response.json();
           
-          // پاسخ ربات را در UI نمایش بده
           messages.value.push({
             id: 'res-' + Date.now(),
             text: data.response,
@@ -104,25 +101,19 @@ export default {
 
         } catch (error) {
           console.error('Error sending message:', error);
-          // نمایش پیام خطا در چت
           messages.value.push({
             id: 'error-' + Date.now(),
             text: 'متاسفانه در ارتباط با سرور مشکلی پیش آمد. لطفا دوباره تلاش کنید.',
             type: 'receiver'
           });
         } finally {
-          loading.value = false; // نمایشگر لودینگ را غیرفعال کن
+          loading.value = false;
         }
+      } else {
+        console.log('User input is empty.');
       }
     };
     
-    // دیگر نیازی به onMounted برای بارگذاری پیام‌های تستی نیست
-    onMounted(() => {
-      // fetchMessages(); // این خط باید حذف یا کامنت شود
-    });
-    
-    // --- END OF THE CORRECT CODE ---
-
     return {
       userInput,
       messages,
