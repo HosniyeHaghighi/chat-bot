@@ -80,7 +80,7 @@ export default {
         
         messages.value.push({
           id: 'msg-' + Date.now(),
-          text: userMessage-Text,
+          text: userMessageText,
           type: 'sender'
         });
         
