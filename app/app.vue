@@ -30,7 +30,7 @@ import MessageBox from './components/MessageBox.vue';
 import ChatInput from './components/ChatInput.vue';
 
 interface Message {
-  id: number | string; // برای سازگاری با شناسه‌های رشته‌ای اصلاح شد
+  id: number | string;
   text: string;
   type: 'sender' | 'receiver';
 }
@@ -45,27 +45,42 @@ export default {
     const messages = ref<Message[]>([]);
     const loading = ref(false);
 
-    const backendUrl = 'http://89.251.9.191:8000'; // آدرس بک‌اند
+    const backendUrl = 'http://89.251.9.191:8000';
+
+    // --- START OF THE FIX ---
+    // تابع جدید و مقاوم برای ساخت شناسه
+    function generateUUID() {
+      // اگر crypto.randomUUID در دسترس و امن بود، از آن استفاده کن
+      if (crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      // در غیر این صورت، از روش جایگزین استفاده کن
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        const r = (Math.random() * 16) | 0;
+        const v = c === 'x' ? r : (r & 0x3) | 0x8;
+        return v.toString(16);
+      });
+    }
 
     function getSessionId() {
       let sessionId = localStorage.getItem('chatSessionId');
       if (!sessionId) {
-        sessionId = crypto.randomUUID();
+        sessionId = generateUUID(); // استفاده از تابع جدید
         localStorage.setItem('chatSessionId', sessionId);
       }
       return sessionId;
     }
+    // --- END OF THE FIX ---
 
     const sendMessage = async () => {
-      // --- خط دیباگ ---
-      console.log('sendMessage function was called!'); // این پیام باید در کنسول مرورگر نمایش داده شود
+      console.log('sendMessage function was called!');
 
       if (userInput.value.trim()) {
         const userMessageText = userInput.value;
         
         messages.value.push({
           id: 'msg-' + Date.now(),
-          text: userMessageText,
+          text: userMessage-Text,
           type: 'sender'
         });
         
@@ -73,8 +88,7 @@ export default {
         loading.value = true;
 
         try {
-          // --- ارسال درخواست واقعی ---
-          console.log('Sending fetch request to backend...'); // لاگ قبل از ارسال
+          console.log('Sending fetch request to backend...');
           const response = await fetch(`${backendUrl}/api/v1/chat`, {
             method: 'POST',
             headers: {
@@ -85,7 +99,7 @@ export default {
               session_id: getSessionId()
             })
           });
-          console.log('Fetch request sent.'); // لاگ بعد از ارسال
+          console.log('Fetch request sent.');
 
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
