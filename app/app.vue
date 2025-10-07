@@ -161,7 +161,7 @@ export default {
   border-color: rgba(47, 47, 47, 1);
 }
 .bg-primary-500{
-  background-color: rgba(144, 46, 230, 1);
+  color: rgba(144, 46, 230, 1);
 }
 .message-box {
   height: calc(100vh - 298px);

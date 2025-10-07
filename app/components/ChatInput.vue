@@ -11,7 +11,7 @@
         placeholder="سوال خود را بپرسید..."
         dir="rtl"
       />
-      <icon-svg name="icons:icon" class="text-5xl" @click="handleSendMessage" />
+      <icon-svg name="icons:send" class="text-5xl bg-primary-500" @click="handleSendMessage" />
     </div>
   </div>
 </template>
