@@ -45,58 +45,82 @@ export default {
     const messages = ref<Message[]>([]);
     const loading = ref(false);
 
-    const fetchMessages = async () => {
-      loading.value = true;
-      try {
-        const response = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=3');
-        const posts = await response.json();
-        
-        const apiMessages: Message[] = posts.map((post: any, index: number) => ({
-          id: post.id,
-          text: post.title,
-          type: index % 2 === 0 ? 'sender' : 'receiver'
-        }));
+    // --- START OF CHANGES ---
 
-        messages.value = apiMessages;
-      } catch (error) {
-        console.error('Error fetching messages:', error);
-        messages.value = [
-          {
-            id: 1,
-            text: 'خطا در دریافت پیام‌ها. لطفا دوباره تلاش کنید.',
-            type: 'receiver'
-          }
-        ];
-      } finally {
-        loading.value = false;
+    // 1. Define your backend URL
+    const backendUrl = 'http://89.251.9.191:8000'; // Or your server's public IP
+
+    // 2. Create the session ID management function
+    function getSessionId() {
+      let sessionId = localStorage.getItem('chatSessionId');
+      if (!sessionId) {
+        sessionId = crypto.randomUUID();
+        localStorage.setItem('chatSessionId', sessionId);
       }
-    };
+      return sessionId;
+    }
 
-    const sendMessage = () => {
+    // 3. Update the sendMessage function
+    const sendMessage = async () => {
       if (userInput.value.trim()) {
-        const newMessage: Message = {
-          id: Date.now(),
-          text: userInput.value,
-          type: 'sender'
-        };
-        messages.value.push(newMessage);
-        userInput.value = '';
+        const userMessageText = userInput.value;
         
-        // شبیه‌سازی پاسخ پس از ارسال پیام
-        setTimeout(() => {
-          const responseMessage: Message = {
-            id: Date.now() + 1,
-            text: 'پیام شما دریافت شد. من دستیار هوش مصنوعی هستم و در حال حاضر از JSONPlaceholder برای تست استفاده می‌کنم.',
+        // Add user's message to the UI immediately
+        messages.value.push({
+          id: Date.now(),
+          text: userMessageText,
+          type: 'sender'
+        });
+        
+        userInput.value = '';
+        loading.value = true; // Show loading indicator
+
+        try {
+          const response = await fetch(`http://89.251.9.191:8000/api/v1/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: userMessageText,
+              session_id: getSessionId()
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error(`error!`);
+          }
+
+          const data = await response.json();
+          
+          // Add bot's response to the UI
+          messages.value.push({
+            id: Date.now() + 1, // Or use an ID from the backend if available
+            text: data.response,
             type: 'receiver'
-          };
-          messages.value.push(responseMessage);
-        }, 1000);
+          });
+
+        } catch (error) {
+          console.error('Error sending message:', error);
+          // Show an error message in the chat
+          messages.value.push({
+            id: 'error-' + Date.now(),
+            text: 'متاسفانه در ارتباط با سرور مشکلی پیش آمد. لطفا دوباره تلاش کنید.',
+            type: 'receiver'
+          });
+        } finally {
+          loading.value = false; // Hide loading indicator
+        }
       }
     };
 
+    // We no longer need fetchMessages on mount, 
+    // but you can keep it if you want to load an initial welcome message from an API.
     onMounted(() => {
-      fetchMessages();
+      // fetchMessages(); // This can be removed or repurposed
     });
+    
+    // --- END OF CHANGES ---
 
     return {
       userInput,
