@@ -30,7 +30,7 @@ import MessageBox from './components/MessageBox.vue';
 import ChatInput from './components/ChatInput.vue';
 
 interface Message {
-  id: number;
+  id: number | string;
   text: string;
   type: 'sender' | 'receiver';
 }
