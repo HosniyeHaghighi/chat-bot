@@ -75,7 +75,7 @@ export default {
         try {
           // --- ارسال درخواست واقعی ---
           console.log('Sending fetch request to backend...'); // لاگ قبل از ارسال
-          const response = await fetch(`http://89.251.9.191:8000/api/v1/chat`, {
+          const response = await fetch(`${backendUrl}/api/v1/chat`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
